@@ -1,0 +1,777 @@
+{
+  "info": {
+    "_postman_id": "7a35c249-fa08-410a-b3e5-8e3d8e579001",
+    "name": "Faculty-Student Portal API",
+    "description": "Complete Postman collection for the College Faculty-Student Portal backend with environment variables and auto-token extraction.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000", "type": "string" },
+    { "key": "teacherToken", "value": "", "type": "string" },
+    { "key": "studentToken", "value": "", "type": "string" },
+    { "key": "classId", "value": "", "type": "string" },
+    { "key": "joinCode", "value": "", "type": "string" },
+    { "key": "joinRequestId", "value": "", "type": "string" },
+    { "key": "examId", "value": "", "type": "string" },
+    { "key": "noticeId", "value": "", "type": "string" },
+    { "key": "dayId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "01. Health Check",
+      "item": [
+        {
+          "name": "Health Check (No DB Call)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Instant health check for Render uptime monitoring. Does not ping the database."
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Authentication",
+      "item": [
+        {
+          "name": "1. Signup Initiate (Teacher)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"teacher\",\n  \"fullName\": \"Dr. Alan Turing\",\n  \"email\": \"turing@college.edu\",\n  \"password\": \"Secret123!\",\n  \"confirmPassword\": \"Secret123!\",\n  \"post\": \"Professor & HOD\",\n  \"department\": \"Computer Science\",\n  \"phone\": \"9876543210\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup/initiate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup", "initiate"]
+            },
+            "description": "Step 1 of signup. Strict rate limiter applies (max 5 requests per 15 min per email)."
+          }
+        },
+        {
+          "name": "2. Signup Verify (Teacher)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) {",
+                  "  pm.collectionVariables.set('teacherToken', res.token);",
+                  "  console.log('teacherToken set successfully');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"turing@college.edu\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup", "verify"]
+            },
+            "description": "Step 2 of signup. Check console/terminal for the OTP code in dev mode."
+          }
+        },
+        {
+          "name": "3. Login (Teacher)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) {",
+                  "  pm.collectionVariables.set('teacherToken', res.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"turing@college.edu\",\n  \"password\": \"Secret123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "4. Signup Initiate (Student)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"student\",\n  \"fullName\": \"Ada Lovelace\",\n  \"email\": \"ada@college.edu\",\n  \"password\": \"StudentPass123!\",\n  \"confirmPassword\": \"StudentPass123!\",\n  \"department\": \"Computer Science\",\n  \"year\": \"Final Year\",\n  \"section\": \"A\",\n  \"phone\": \"9876543211\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup/initiate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup", "initiate"]
+            }
+          }
+        },
+        {
+          "name": "5. Signup Verify (Student)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) {",
+                  "  pm.collectionVariables.set('studentToken', res.token);",
+                  "  console.log('studentToken set successfully');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ada@college.edu\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup", "verify"]
+            }
+          }
+        },
+        {
+          "name": "6. Login (Student)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) {",
+                  "  pm.collectionVariables.set('studentToken', res.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ada@college.edu\",\n  \"password\": \"StudentPass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "7. Forgot Password Step 1 (Send OTP)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"turing@college.edu\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/forgot-password/step1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "forgot-password", "step1"]
+            }
+          }
+        },
+        {
+          "name": "8. Forgot Password Step 2 (Verify OTP)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"turing@college.edu\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/forgot-password/step2",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "forgot-password", "step2"]
+            }
+          }
+        },
+        {
+          "name": "9. Forgot Password Step 3 (Reset Password)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"turing@college.edu\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"NewPassword123!\",\n  \"confirmNewPassword\": \"NewPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/forgot-password/step3",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "forgot-password", "step3"]
+            }
+          }
+        },
+        {
+          "name": "10. Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacherToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Classrooms",
+      "item": [
+        {
+          "name": "1. Create Class (Teacher)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.classroom) {",
+                  "  pm.collectionVariables.set('classId', res.classroom._id);",
+                  "  pm.collectionVariables.set('joinCode', res.classroom.joinCode);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectName\": \"Advanced Operating Systems\",\n  \"numberOfStudents\": 60,\n  \"department\": \"Computer Science\",\n  \"year\": \"Final Year\",\n  \"section\": \"A\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/classes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "classes"]
+            }
+          }
+        },
+        {
+          "name": "2. Regenerate Join Code (Teacher)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.joinCode) {",
+                  "  pm.collectionVariables.set('joinCode', res.joinCode);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classId\": \"{{classId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/classes/regenerate-code",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "classes", "regenerate-code"]
+            }
+          }
+        },
+        {
+          "name": "3. Teacher List Classes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacherToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/classes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "classes"]
+            }
+          }
+        },
+        {
+          "name": "4. Student Join Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.joinRequest) {",
+                  "  pm.collectionVariables.set('joinRequestId', res.joinRequest._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"joinCode\": \"{{joinCode}}\",\n  \"year\": \"Final Year\",\n  \"department\": \"Computer Science\",\n  \"scholarNo\": \"SCH-2024-001\",\n  \"rollNo\": \"CS-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/classes/join-request",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "classes", "join-request"]
+            }
+          }
+        },
+        {
+          "name": "5. Teacher List Join Requests (Paginated)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacherToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/classes/{{classId}}/join-requests?status=pending&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "classes", "{{classId}}", "join-requests"],
+              "query": [
+                { "key": "status", "value": "pending" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "6. Teacher Approve/Reject Join Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"joinRequestId\": \"{{joinRequestId}}\",\n  \"action\": \"approve\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/classes/join-requests/respond",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "classes", "join-requests", "respond"]
+            }
+          }
+        },
+        {
+          "name": "7. Student Enrolled Classes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/classes/enrolled",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "classes", "enrolled"]
+            }
+          }
+        },
+        {
+          "name": "8. Get Class Details",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacherToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/classes/{{classId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "classes", "{{classId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04. Attendance",
+      "item": [
+        {
+          "name": "1. Submit Today's Attendance (Teacher)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classId\": \"{{classId}}\",\n  \"date\": \"2026-10-06\",\n  \"records\": [\n    { \"rollNo\": \"CS-01\", \"status\": \"present\" },\n    { \"rollNo\": \"CS-02\", \"status\": \"absent\" },\n    { \"rollNo\": \"CS-03\", \"status\": \"present\" }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/attendance",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attendance"]
+            },
+            "description": "Works with roll numbers directly without requiring student accounts to exist."
+          }
+        },
+        {
+          "name": "2. Edit Attendance Record (Teacher)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classId\": \"{{classId}}\",\n  \"rollNo\": \"CS-02\",\n  \"date\": \"2026-10-06\",\n  \"status\": \"present\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/attendance",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attendance"]
+            }
+          }
+        },
+        {
+          "name": "3. Teacher List Attendance (Paginated)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacherToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/attendance/{{classId}}?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attendance", "{{classId}}"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "date", "value": "2026-10-06", "disabled": true },
+                { "key": "rollNo", "value": "CS-01", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "4. Student View Attendance (Read-Only Linked to RollNo)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/attendance/{{classId}}?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attendance", "{{classId}}"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05. Exams & Marks",
+      "item": [
+        {
+          "name": "1. Create Exam Column (Teacher)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.exam) {",
+                  "  pm.collectionVariables.set('examId', res.exam._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classId\": \"{{classId}}\",\n  \"examName\": \"Midterm Exam 1\",\n  \"maxMarks\": 50\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/exams",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "exams"]
+            }
+          }
+        },
+        {
+          "name": "2. List Exams (Paginated)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacherToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/exams/{{classId}}?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "exams", "{{classId}}"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. Submit Marks (Teacher)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classId\": \"{{classId}}\",\n  \"examId\": \"{{examId}}\",\n  \"records\": [\n    { \"rollNo\": \"CS-01\", \"marksObtained\": 47 },\n    { \"rollNo\": \"CS-02\", \"marksObtained\": 39 },\n    { \"rollNo\": \"CS-03\", \"marksObtained\": 44 }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/marks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "marks"]
+            }
+          }
+        },
+        {
+          "name": "4. Edit Marks Record (Teacher)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classId\": \"{{classId}}\",\n  \"examId\": \"{{examId}}\",\n  \"rollNo\": \"CS-02\",\n  \"marksObtained\": 45\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/marks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "marks"]
+            }
+          }
+        },
+        {
+          "name": "5. Teacher View Marks (Paginated)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacherToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/marks/{{classId}}?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "marks", "{{classId}}"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "examId", "value": "{{examId}}", "disabled": true },
+                { "key": "rollNo", "value": "CS-01", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "6. Student View Marks (Read-Only Linked to RollNo)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/marks/{{classId}}?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "marks", "{{classId}}"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06. Notices",
+      "item": [
+        {
+          "name": "1. Create Notice (Teacher)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.notice) {",
+                  "  pm.collectionVariables.set('noticeId', res.notice._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classId\": \"{{classId}}\",\n  \"title\": \"Assignment 1 Announced\",\n  \"message\": \"Please submit Assignment 1 on Distributed Concurrency Control before October 20th.\",\n  \"link\": \"https://college.edu/assignment-1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/notices",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notices"]
+            }
+          }
+        },
+        {
+          "name": "2. List Notices (Paginated)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacherToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/notices/{{classId}}?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notices", "{{classId}}"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. Mark Notice Read (Student)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/notices/{{noticeId}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notices", "{{noticeId}}", "read"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07. AI Syllabus Planner",
+      "item": [
+        {
+          "name": "1. Generate AI Planner (Teacher)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.days && res.days.length > 0) {",
+                  "  pm.collectionVariables.set('dayId', res.days[0]._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classId\": \"{{classId}}\",\n  \"extractedSyllabusText\": \"Module 1: Distributed Architectures. Client-server, peer-to-peer. Module 2: Processes and Threads. Code migration. Module 3: Naming and Coordination. Module 4: Fault Tolerance and Paxos consensus.\",\n  \"numberOfDays\": 15,\n  \"regenerate\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/planner/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "planner", "generate"]
+            },
+            "description": "Calls Groq with 3x exponential backoff retry. Automatically caches in MongoDB immediately."
+          }
+        },
+        {
+          "name": "2. Get Full Planner (Teacher / Student)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacherToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/planner/{{classId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "planner", "{{classId}}"]
+            }
+          }
+        },
+        {
+          "name": "3. Mark Planner Day Status (Teacher)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classId\": \"{{classId}}\",\n  \"dayId\": \"{{dayId}}\",\n  \"status\": \"done\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/planner/day",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "planner", "day"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
