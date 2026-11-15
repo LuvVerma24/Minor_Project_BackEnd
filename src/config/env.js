@@ -1,5 +1,9 @@
+const path = require('path');
 const dotenv = require('dotenv');
-dotenv.config();
+
+// Load environment variables from backend root .env regardless of working directory
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config(); // fallback to cwd if root not found
 
 const env = {
   PORT: process.env.PORT || 5000,
@@ -13,7 +17,7 @@ const env = {
   EMAIL_API_KEY: process.env.EMAIL_API_KEY || '',
   EMAIL_FROM: process.env.EMAIL_FROM || 'Faculty Portal <onboarding@resend.dev>',
   GROQ_API_KEY: process.env.GROQ_API_KEY || '',
-  GROQ_MODEL: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+  GROQ_MODEL: process.env.GROQ_MODEL || 'qwen/qwen3.8-27b',
 };
 
 module.exports = env;
