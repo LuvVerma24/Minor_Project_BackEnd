@@ -1,9 +1,34 @@
 const env = require('../config/env');
 
 /**
+ * Helper to safely extract sender name and email from EMAIL_FROM
+ * Supports both:
+ * 1) "Faculty Portal <user@gmail.com>"
+ * 2) "user@gmail.com"
+ */
+const parseSender = (rawFrom) => {
+  const str = (rawFrom || '').trim();
+  const match = str.match(/<([^>]+)>/);
+  if (match) {
+    const namePart = str.split('<')[0].trim();
+    return {
+      name: namePart || 'Faculty Portal',
+      email: match[1].trim(),
+      full: str,
+    };
+  }
+  return {
+    name: 'Faculty Portal',
+    email: str || 'noreply@college.edu',
+    full: str ? `Faculty Portal <${str}>` : 'Faculty Portal <noreply@college.edu>',
+  };
+};
+
+/**
  * Send email via Resend API
  */
 const sendViaResend = async (to, subject, html, text) => {
+  const sender = parseSender(env.EMAIL_FROM);
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -11,7 +36,7 @@ const sendViaResend = async (to, subject, html, text) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: env.EMAIL_FROM,
+      from: sender.full,
       to: [to],
       subject,
       html,
@@ -31,6 +56,7 @@ const sendViaResend = async (to, subject, html, text) => {
  * Send email via Brevo API
  */
 const sendViaBrevo = async (to, subject, html, text) => {
+  const sender = parseSender(env.EMAIL_FROM);
   const response = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: {
@@ -39,8 +65,8 @@ const sendViaBrevo = async (to, subject, html, text) => {
     },
     body: JSON.stringify({
       sender: {
-        name: env.EMAIL_FROM.split('<')[0].trim() || 'College Portal',
-        email: (env.EMAIL_FROM.match(/<([^>]+)>/) || [null, 'noreply@college.edu'])[1],
+        name: sender.name,
+        email: sender.email,
       },
       to: [{ email: to }],
       subject,
@@ -152,4 +178,5 @@ const sendOtpEmail = async (email, otp, purpose = 'signup') => {
 module.exports = {
   sendEmail,
   sendOtpEmail,
+  parseSender,
 };
