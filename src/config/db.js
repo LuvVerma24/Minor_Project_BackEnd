@@ -18,6 +18,26 @@ const connectDB = async (retryCount = 0) => {
     const conn = await mongoose.connect(env.MONGODB_URI, options);
     isConnected = true;
     console.log(`[Database] MongoDB Connected successfully to host: ${conn.connection.host}`);
+
+    // Ensure only email is unique: automatically drop any legacy/stray unique indexes (e.g. username_1)
+    try {
+      const userCollection = conn.connection.collection('users');
+      const indexes = await userCollection.indexes();
+      for (const idx of indexes) {
+        if (idx.name === 'username_1' || (idx.key && idx.key.username !== undefined)) {
+          console.log(`[Database] Removing legacy unique index "${idx.name}"...`);
+          await userCollection.dropIndex(idx.name);
+          console.log(`[Database] Dropped "${idx.name}" index.`);
+        }
+      }
+      const User = require('../models/User');
+      await User.syncIndexes();
+      console.log('[Database] User collection indexes verified: ONLY email is unique.');
+    } catch (indexErr) {
+      // Collection might not exist yet on fresh databases, safely continue
+      console.warn('[Database] Index cleanup check note:', indexErr.message);
+    }
+
     return conn;
   } catch (error) {
     isConnected = false;
